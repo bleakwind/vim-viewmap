@@ -1,2 +1,50 @@
-# vim-viewmap
-Sidebar Thumbnail Navigation...
+# vim-viewmap - Sidebar Thumbnail Navigation
+Viewmap is a lightweight Vim plugin that displays a real-time code thumbnail in a sidebar, providing a bird's-eye view of your document structure. It renders compressed text representations using Unicode Braille patterns, allowing you to quickly navigate large files while preserving spatial awareness.
+
+## Features
+- **Native**: 100% Vimscript, zero dependencies
+- **Instant Overview**: See your entire file at a glance
+- **Pixel-Perfect Preview**: Braille-pattern rendering preserves code structure
+- **Zero Lag**: Optimized for buttery-smooth scrolling
+- **Non-Invasive**: 20px slim sidebar that auto-hides in diff mode
+
+## Screenshot
+![Viewmap Screenshot](https://github.com/bleakwind/vim-viewmap/blob/main/vim-viewmap.png)
+
+## Requirements
+Vim 8.1+ (needs win_execute() and timer support)
+
+## Installation
+```vim
+" Using Vundle
+Plugin 'bleakwind/vim-viewmap'
+```
+
+And Run:
+```vim
+:PluginInstall
+```
+
+## Configuration
+Add these to your `.vimrc`:
+```vim
+" Set 1 enable viewmap (default: 0)
+let g:viewmap_enabled = 1
+" Set sidebar width (default: 20)
+let g:viewmap_width = 20
+" Set update delay in milliseconds (default: 200)
+let g:viewmap_updelay = 200
+" Custom highlight group (default links to Visual)
+hi ViewmapHighlight ctermbg=Brown guibg=#6A5ACD
+```
+
+## Usage
+| Command | Description |
+| ---- | ---- |
+| `:ViewmapOpen` | Open the thumbnail sidebar |
+| `:ViewmapClose` | Close the thumbnail sidebar |
+| `:ViewmapToggle` | Toggle the thumbnail sidebar |
+
+## License
+BSD 2-Clause - See LICENSE file
+
