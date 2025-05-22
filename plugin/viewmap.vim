@@ -111,18 +111,21 @@ function! viewmap#UpdateContent() abort
 
     let win_bufnr = winbufnr(win_getid())
     let win_width = winwidth(win_getid())
-    let win_lines = line('$')
+
+    let win_topline = line('w0')
+    let win_botline = line('w$')
+    let win_allline = line('$')
 
     let thumb_scale = 4
     let thumb_width = max([1, g:viewmap_width - 0])
-    let thumb_lines = (win_lines + 3) / 4
+    let thumb_lines = (win_allline + 3) / 4
     let thumb_cont = []
 
     for record in range(0, thumb_lines - 1)
         let llist = []
         for offset in range(0, 3)
             let lnum = record * 4 + offset + 1
-            call add(llist, lnum <= win_lines ? getbufline(win_bufnr, lnum)[0] : '')
+            call add(llist, lnum <= win_allline ? getbufline(win_bufnr, lnum)[0] : '')
         endfor
         let lcont = ''
         for col in range(0, thumb_width - 1)
