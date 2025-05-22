@@ -52,7 +52,7 @@ let s:viewmap_chars = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '00
 function! viewmap#Open() abort
     if viewmap#IsVisible() || &diff | return | endif
 
-    execute 'vertical rightbelow ' . g:viewmap_width . ' new'
+    execute 'vertical rightbelow '.g:viewmap_width.' new'
     let s:viewmap_bufnr = bufnr('%')
     let s:viewmap_winid = win_getid()
 
@@ -147,7 +147,7 @@ function! viewmap#UpdateContent() abort
 
     call win_execute(s:viewmap_winid, 'setlocal modifiable')
     call win_execute(s:viewmap_winid, 'silent %delete _')
-    call win_execute(s:viewmap_winid, 'call setline(1, ' . string(thumb_cont) . ')')
+    call win_execute(s:viewmap_winid, 'call setline(1, '.string(thumb_cont).')')
     call win_execute(s:viewmap_winid, 'setlocal nomodifiable')
 
     let &lazyredraw = l:save_lazyredraw
@@ -190,7 +190,7 @@ function! viewmap#UpdatePosition() abort
             let thumb_toppos = max([1, thumb_hicent - (thumb_winhgt / 2) + &scrolloff])
             let thumb_toppos = min([thumb_lines - thumb_winhgt + 1 + &scrolloff, thumb_toppos])
             if thumb_toppos > 0
-                call win_execute(s:viewmap_winid, 'call cursor(' . thumb_toppos . ', 1)')
+                call win_execute(s:viewmap_winid, 'call cursor('.thumb_toppos.', 1)')
                 call win_execute(s:viewmap_winid, 'normal! zt')
             endif
         endif
