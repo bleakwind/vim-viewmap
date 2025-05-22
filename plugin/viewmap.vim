@@ -1,7 +1,7 @@
 " vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4: */
 "
 " +--------------------------------------------------------------------------+
-" | $Id: viewmap.vim 2025-05-21 10:06:29 Bleakwind Exp $                     |
+" | $Id: viewmap.vim 2025-05-23 02:30:17 Bleakwind Exp $                     |
 " +--------------------------------------------------------------------------+
 " | Copyright (c) 2008-2025 Bleakwind(Rick Wu).                              |
 " +--------------------------------------------------------------------------+
@@ -42,11 +42,9 @@ endif
 
 let s:viewmap_bufnr = -1
 let s:viewmap_winid = -1
-let s:last_topline = -1
-let s:last_botline = -1
-let s:update_timer = -1
-let s:block_chars = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '0001':'⡀', '1100':'⠃', '0110':'⠆', '0011':'⡄',
-                   \ '1010':'⠅', '1001':'⡁', '0101':'⡂', '1110':'⠇', '1101':'⡃', '1011':'⡅', '0111':'⡆', '1111':'⡇'}
+let s:viewmap_timer = -1
+let s:viewmap_chars = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '0001':'⡀', '1100':'⠃', '0110':'⠆', '0011':'⡄',
+                     \ '1010':'⠅', '1001':'⡁', '0101':'⡂', '1110':'⠇', '1101':'⡃', '1011':'⡅', '0111':'⡆', '1111':'⡇'}
 
 " ============================================================================
 " function detail
@@ -73,15 +71,15 @@ function! viewmap#Open() abort
         autocmd WinClosed * if win_getid() == s:viewmap_winid | let s:viewmap_winid = -1 | endif
     augroup END
 
-    call viewmap#UpdateContent()
+    call viewmap#SafeUpdateContent()
 endfunction
 
 function! viewmap#Close() abort
     if !viewmap#IsVisible() | return | endif
 
-    if s:update_timer != -1
-        call timer_stop(s:update_timer)
-        let s:update_timer = -1
+    if s:viewmap_timer != -1
+        call timer_stop(s:viewmap_timer)
+        let s:viewmap_timer = -1
     endif
 
     augroup ViewmapAutocmd
@@ -115,13 +113,12 @@ function! viewmap#UpdateContent() abort
     let win_width = winwidth(win_getid())
     let win_lines = line('$')
 
-    let thumb_width = max([1, g:viewmap_width - 0])
-    "let thumb_scale = max([1, win_width / thumb_width])
     let thumb_scale = 4
-    let thumb_line = (win_lines + 3) / 4
+    let thumb_width = max([1, g:viewmap_width - 0])
+    let thumb_lines = (win_lines + 3) / 4
     let thumb_cont = []
 
-    for record in range(0, thumb_line - 1)
+    for record in range(0, thumb_lines - 1)
         let llist = []
         for offset in range(0, 3)
             let lnum = record * 4 + offset + 1
@@ -143,7 +140,7 @@ function! viewmap#UpdateContent() abort
                     let char_list[i] = 0
                 endif
             endfor
-            let lcont .= get(s:block_chars, join(char_list, ''), ' ')
+            let lcont .= get(s:viewmap_chars, join(char_list, ''), ' ')
         endfor
         call add(thumb_cont, lcont)
     endfor
@@ -154,66 +151,64 @@ function! viewmap#UpdateContent() abort
     call win_execute(s:viewmap_winid, 'setlocal nomodifiable')
 
     let &lazyredraw = l:save_lazyredraw
-    call viewmap#UpdatePosition()
+    call viewmap#SafeUpdatePosition()
 endfunction
 
 function! viewmap#UpdatePosition() abort
     if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
 
-    let topline = line('w0')
-    let botline = line('w$')
-    let win_lines = line('$')
-    let thumb_line = line('$', s:viewmap_winid)
+    let win_topline = line('w0')
+    let win_botline = line('w$')
+    let win_allline = line('$')
 
-    if thumb_line > 0
-        let scale_factor = max([1, float2nr(ceil(win_lines * 1.0 / thumb_line))])
-        let thumb_top = max([1, float2nr(floor(topline * 1.0 / scale_factor))])
-        let thumb_bot = max([1, float2nr(ceil(botline * 1.0 / scale_factor))])
-        let thumb_top = min([thumb_line, thumb_top])
-        let thumb_bot = min([thumb_line, thumb_bot])
+    let thumb_scale = 4
+    let thumb_lines = line('$', s:viewmap_winid)
 
-        if thumb_top > thumb_bot
-            let [thumb_top, thumb_bot] = [thumb_bot, thumb_top]
+    if thumb_lines > 0
+        let thumb_hitop = max([1, float2nr(floor(win_topline * 1.0 / thumb_scale))])
+        let thumb_hibot = max([1, float2nr(ceil(win_botline * 1.0 / thumb_scale))])
+        let thumb_hitop = min([thumb_lines, thumb_hitop])
+        let thumb_hibot = min([thumb_lines, thumb_hibot])
+
+        if thumb_hitop > thumb_hibot
+            let [thumb_hitop, thumb_hibot] = [thumb_hibot, thumb_hitop]
         endif
 
         call win_execute(s:viewmap_winid, 'if exists("w:viewmap_highlight") | call matchdelete(w:viewmap_highlight) | endif')
         call win_execute(s:viewmap_winid, 'unlet! w:viewmap_highlight')
 
-        if thumb_top <= thumb_bot && thumb_top > 0 && thumb_bot <= thumb_line
-            let highlight_range = range(thumb_top, thumb_bot)
+        if thumb_hitop <= thumb_hibot && thumb_hitop > 0 && thumb_hibot <= thumb_lines
+            let highlight_range = range(thumb_hitop, thumb_hibot)
             if !empty(highlight_range)
                 call win_execute(s:viewmap_winid, 'let w:viewmap_highlight = matchaddpos("'.g:viewmap_highlight.'", '.string(highlight_range).', 10)')
             endif
         endif
 
-        let win_height = winheight(s:viewmap_winid)
-        if win_height > 0 && thumb_top > 0 && thumb_bot > 0
-            let center_pos = (thumb_top + thumb_bot) / 2
-            let target_pos = max([1, center_pos - win_height / 2])
-            let target_pos = min([thumb_line - win_height + 1, target_pos])
-            if target_pos > 0
-                call win_execute(s:viewmap_winid, 'call cursor(' . target_pos . ', 1)')
+        let thumb_winhgt = winheight(s:viewmap_winid)
+        if thumb_winhgt > 0 && thumb_hitop > 0 && thumb_hibot > 0
+            let thumb_hicent = (thumb_hitop + thumb_hibot) / 2
+            let thumb_toppos = max([1, thumb_hicent - (thumb_winhgt / 2) + &scrolloff])
+            let thumb_toppos = min([thumb_lines - thumb_winhgt + 1 + &scrolloff, thumb_toppos])
+            if thumb_toppos > 0
+                call win_execute(s:viewmap_winid, 'call cursor(' . thumb_toppos . ', 1)')
                 call win_execute(s:viewmap_winid, 'normal! zt')
             endif
         endif
     endif
-
-    let s:last_topline = topline
-    let s:last_botline = botline
 endfunction
 
 function! viewmap#SafeUpdateContent() abort
     if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
-    if s:update_timer != -1
-        call timer_stop(s:update_timer)
-        let s:update_timer = -1
+    if s:viewmap_timer != -1
+        call timer_stop(s:viewmap_timer)
+        let s:viewmap_timer = -1
     endif
-    let s:update_timer = timer_start(g:viewmap_updelay, {-> viewmap#UpdateContent()})
+    let s:viewmap_timer = timer_start(g:viewmap_updelay, {-> execute('call viewmap#UpdateContent()', '')})
 endfunction
 
 function! viewmap#SafeUpdatePosition() abort
     if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
-    call viewmap#UpdatePosition()
+    call timer_start(0, {-> execute('call viewmap#UpdatePosition()', '')})
 endfunction
 
 " ============================================================================
@@ -223,9 +218,9 @@ augroup ViewmapDiffmode
     autocmd!
     autocmd OptionSet diff
                 \ if v:option_new && viewmap#IsVisible() |
-                \     call timer_start(0, {-> viewmap#Close()}) |
+                \     call timer_start(0, {-> execute('call viewmap#Close()', '')}) |
                 \ elseif !v:option_new && !viewmap#IsVisible() && g:viewmap_state == 1 |
-                \     call timer_start(0, {-> viewmap#Open()}) |
+                \     call timer_start(0, {-> execute('call viewmap#Open()', '')}) |
                 \ endif
 augroup END
 
@@ -235,8 +230,6 @@ augroup END
 function! viewmap#OpenState() abort
     call viewmap#Open()
     let g:viewmap_state = 1
-    call viewmap#SafeUpdateContent()
-    call viewmap#SafeUpdatePosition()
 endfunction
 
 function! viewmap#CloseState() abort
