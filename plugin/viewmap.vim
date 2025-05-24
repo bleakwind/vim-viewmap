@@ -188,8 +188,10 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                 for col in range(0, thumb_width - 1)
                     let char_list = [0, 0, 0, 0]
                     for i in range(0, 3)
-                        let buffer_beg = match(tlist[i], '[^ \t]') == -1 ? len(tlist[i]) : match(tlist[i], '[^ \t]')
-                        let buffer_end = strdisplaywidth(tlist[i]) > 0 ? strdisplaywidth(tlist[i]) - 1 : 0
+                        let search_beg = match(tlist[i], '[^ \t]')
+                        let search_end = strdisplaywidth(tlist[i])
+                        let buffer_beg = search_beg == -1 ? len(tlist[i]) : search_beg
+                        let buffer_end = search_end > 0 ? search_end - 1 : 0
                         let thumb_beg = buffer_beg/thumb_scale
                         let thumb_end = buffer_end/thumb_scale
                         if tlist[i] == ''
