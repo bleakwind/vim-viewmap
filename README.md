@@ -36,8 +36,14 @@ let g:viewmap_enabled = 1
 let g:viewmap_width = 20
 " Set update delay in milliseconds (default: 200)
 let g:viewmap_updelay = 200
-" Custom highlight group (default links to Visual)
-hi ViewmapHighlight ctermbg=Brown guibg=#6A5ACD
+" Set highlight alpha (default: group is Normal, bg alpha is 0.3)
+let g:viewmap_hlalpha = 0.3
+```
+
+Highlight configuration
+```vim
+" Set highlight details (will override g:viewmap_hlalpha)
+hi ViewmapHighlight ctermfg=White ctermbg=Blue cterm=NONE guifg=#FFFFFF guibg=#6A5ACD gui=NONE
 ```
 
 ## Usage

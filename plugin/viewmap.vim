@@ -31,9 +31,8 @@ endif
 if !exists('g:viewmap_updelay')
     let g:viewmap_updelay = 200
 endif
-if !exists('g:viewmap_highlight')
-    let g:viewmap_highlight = 'ViewmapHighlight'
-    highlight default link ViewmapHighlight Visual
+if !exists('g:viewmap_hlalpha')
+    let g:viewmap_hlalpha = 0.3
 endif
 
 if !exists('g:viewmap_state')
@@ -41,6 +40,9 @@ if !exists('g:viewmap_state')
 endif
 if !exists('g:viewmap_data')
     let g:viewmap_data = {}
+endif
+if !exists('g:viewmap_highlight')
+    let g:viewmap_highlight = 'ViewmapHighlight'
 endif
 
 let s:viewmap_bufnr = -1
@@ -102,6 +104,53 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         let s:viewmap_winid = -1
     endfunction
 
+    function! viewmap#ColorMixWhite(color, alpha) abort
+        let res_color = a:color
+        if a:color =~? '^#[0-9a-fA-F]\{6}$' && a:alpha >= 0.0 && a:alpha <= 1.0
+            let r = str2nr(a:color[1:2], 16)
+            let g = str2nr(a:color[3:4], 16)
+            let b = str2nr(a:color[5:6], 16)
+
+            let mixed_r = float2nr(r * (1.0 - a:alpha) + 255 * a:alpha)
+            let mixed_g = float2nr(g * (1.0 - a:alpha) + 255 * a:alpha)
+            let mixed_b = float2nr(b * (1.0 - a:alpha) + 255 * a:alpha)
+
+            let mixed_r = max([0, min([255, mixed_r])])
+            let mixed_g = max([0, min([255, mixed_g])])
+            let mixed_b = max([0, min([255, mixed_b])])
+
+            let res_color = printf('#%02X%02X%02X', mixed_r, mixed_g, mixed_b)
+        endif
+        return res_color
+    endfunction
+
+    function! viewmap#GetHiColor(sort, type) abort
+        let ret_color = ''
+        let gui_color = synIDattr(synIDtrans(hlID('Normal')), a:sort, a:type)
+        if !empty(gui_color) && gui_color != -1
+            let ret_color = gui_color
+        endif
+        return ret_color
+    endfunction
+
+    function! viewmap#SetHlColor() abort
+        let hl_vmfg = ''
+        let hl_vmbg = ''
+        let hl_guifg = viewmap#GetHiColor('fg', 'gui')
+        let hl_guibg = viewmap#GetHiColor('bg', 'gui')
+        if !empty(hl_guifg)
+            let hl_vmfg = hl_guifg
+        endif
+        if !empty(hl_guibg)
+            let hl_vmbg = viewmap#ColorMixWhite(hl_guibg, g:viewmap_hlalpha)
+        endif
+        if hl_vmfg =~? '^#[0-9a-fA-F]\{6}$' && hl_vmbg =~? '^#[0-9a-fA-F]\{6}$'
+            execute 'highlight default '.g:viewmap_highlight.' guifg='.hl_vmfg.' guibg='.hl_vmbg
+        else
+            execute 'highlight default link ViewmapHighlight Visual'
+        endif
+    endfunction
+
     function! viewmap#IsVisible() abort
         return s:viewmap_winid != -1 && win_id2win(s:viewmap_winid) > 0
     endfunction
@@ -113,7 +162,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     function! viewmap#UpdateCon(type = 0) abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
 
-        let l:save_lazyredraw = &lazyredraw
+        let save_lazyredraw = &lazyredraw
         set lazyredraw
 
         let win_bufnr = winbufnr(win_getid())
@@ -162,14 +211,14 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         call win_execute(s:viewmap_winid, 'call setline(1, '.string(g:viewmap_data[win_bufnr]).')')
         call win_execute(s:viewmap_winid, 'setlocal nomodifiable')
 
-        let &lazyredraw = l:save_lazyredraw
+        let &lazyredraw = save_lazyredraw
         call viewmap#SafeUpdatePos()
     endfunction
 
     function! viewmap#DeleteCon(bufnr) abort
-        let l:bufnr = str2nr(a:bufnr)
-        if has_key(g:viewmap_data, l:bufnr)
-            unlet g:viewmap_data[l:bufnr]
+        let bufnr = str2nr(a:bufnr)
+        if has_key(g:viewmap_data, bufnr)
+            unlet g:viewmap_data[bufnr]
         endif
     endfunction
 
@@ -247,6 +296,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     " interface list
     " ============================================================================
     function! viewmap#OpenState() abort
+        call viewmap#SetHlColor()
         call viewmap#Open()
         let g:viewmap_state = 1
     endfunction
@@ -260,6 +310,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         if viewmap#IsVisible()
             call viewmap#CloseState()
         else
+            call viewmap#SetHlColor()
             call viewmap#OpenState()
         endif
     endfunction
