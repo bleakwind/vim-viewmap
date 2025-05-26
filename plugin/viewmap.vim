@@ -32,11 +32,11 @@ let g:viewmap_hlalpha   = get(g:, 'viewmap_hlalpha',    0.3)
 
 let g:viewmap_state     = 0
 let g:viewmap_data      = {}
-let s:viewmap_bufnr     = -1
-let s:viewmap_winid     = -1
-let s:viewmap_timer     = -1
+let g:viewmap_bufnr     = -1
+let g:viewmap_winid     = -1
+let g:viewmap_timer     = -1
 let g:viewmap_hlname    = 'ViewmapHighlight'
-let s:viewmap_chars     = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '0001':'⡀', '1100':'⠃', '0110':'⠆', '0011':'⡄',
+let g:viewmap_chars     = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '0001':'⡀', '1100':'⠃', '0110':'⠆', '0011':'⡄',
                          \ '1010':'⠅', '1001':'⡁', '0101':'⡂', '1110':'⠇', '1101':'⡃', '1011':'⡅', '0111':'⡆', '1111':'⡇'}
 
 " ============================================================================
@@ -52,14 +52,14 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         if viewmap#IsVisible() || &diff | return | endif
 
         execute 'vertical rightbelow '.g:viewmap_width.' new'
-        let s:viewmap_bufnr = bufnr('%')
-        let s:viewmap_winid = win_getid()
+        let g:viewmap_bufnr = bufnr('%')
+        let g:viewmap_winid = win_getid()
 
-        call win_execute(s:viewmap_winid, 'setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile')
-        call win_execute(s:viewmap_winid, 'setlocal nowrap nonumber norelativenumber winfixwidth')
-        call win_execute(s:viewmap_winid, 'setlocal nocursorline nocursorcolumn nolist nofoldenable')
-        call win_execute(s:viewmap_winid, 'setlocal foldcolumn=0 colorcolumn=')
-        call win_execute(s:viewmap_winid, 'file vim-viewmap')
+        call win_execute(g:viewmap_winid, 'setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile')
+        call win_execute(g:viewmap_winid, 'setlocal nowrap nonumber norelativenumber winfixwidth')
+        call win_execute(g:viewmap_winid, 'setlocal nocursorline nocursorcolumn nolist nofoldenable')
+        call win_execute(g:viewmap_winid, 'setlocal foldcolumn=0 colorcolumn=')
+        call win_execute(g:viewmap_winid, 'file vim-viewmap')
 
         wincmd p
 
@@ -69,7 +69,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             autocmd BufEnter * call viewmap#SafeUpdateCon(0)
             autocmd BufDelete * call viewmap#DeleteCon(expand('<abuf>'))
             autocmd WinScrolled * call viewmap#SafeUpdatePos()
-            autocmd WinClosed * if win_getid() == s:viewmap_winid | let s:viewmap_winid = -1 | endif
+            autocmd WinClosed * if win_getid() == g:viewmap_winid | let g:viewmap_winid = -1 | endif
         augroup END
 
         call viewmap#SafeUpdateCon(0)
@@ -81,9 +81,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     function! viewmap#Close() abort
         if !viewmap#IsVisible() | return | endif
 
-        if s:viewmap_timer != -1
-            call timer_stop(s:viewmap_timer)
-            let s:viewmap_timer = -1
+        if g:viewmap_timer != -1
+            call timer_stop(g:viewmap_timer)
+            let g:viewmap_timer = -1
         endif
 
         augroup ViewmapCmdClose
@@ -91,12 +91,12 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         augroup END
         augroup! ViewmapCmdClose
 
-        if win_id2win(s:viewmap_winid) > 0
-            call win_execute(s:viewmap_winid, 'quit')
+        if win_id2win(g:viewmap_winid) > 0
+            call win_execute(g:viewmap_winid, 'quit')
         endif
 
-        let s:viewmap_bufnr = -1
-        let s:viewmap_winid = -1
+        let g:viewmap_bufnr = -1
+        let g:viewmap_winid = -1
     endfunction
 
     " --------------------------------------------------
@@ -159,14 +159,14 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     " viewmap#IsVisible
     " --------------------------------------------------
     function! viewmap#IsVisible() abort
-        return s:viewmap_winid != -1 && win_id2win(s:viewmap_winid) > 0
+        return g:viewmap_winid != -1 && win_id2win(g:viewmap_winid) > 0
     endfunction
 
     " --------------------------------------------------
     " viewmap#IsInwindow
     " --------------------------------------------------
     function! viewmap#IsInwindow() abort
-        return win_getid() == s:viewmap_winid
+        return win_getid() == g:viewmap_winid
     endfunction
 
     " --------------------------------------------------
@@ -215,16 +215,16 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                             let char_list[i] = 0
                         endif
                     endfor
-                    let tdata .= get(s:viewmap_chars, join(char_list, ''), ' ')
+                    let tdata .= get(g:viewmap_chars, join(char_list, ''), ' ')
                 endfor
                 call add(g:viewmap_data[win_bufnr], tdata)
             endfor
         endif
 
-        call win_execute(s:viewmap_winid, 'setlocal modifiable')
-        call win_execute(s:viewmap_winid, 'silent %delete _')
-        call win_execute(s:viewmap_winid, 'call setline(1, '.string(g:viewmap_data[win_bufnr]).')')
-        call win_execute(s:viewmap_winid, 'setlocal nomodifiable')
+        call win_execute(g:viewmap_winid, 'setlocal modifiable')
+        call win_execute(g:viewmap_winid, 'silent %delete _')
+        call win_execute(g:viewmap_winid, 'call setline(1, '.string(g:viewmap_data[win_bufnr]).')')
+        call win_execute(g:viewmap_winid, 'setlocal nomodifiable')
 
         let &lazyredraw = save_lazyredraw
         call viewmap#SafeUpdatePos()
@@ -251,7 +251,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         let win_allline = line('$')
 
         let thumb_scale = 4
-        let thumb_lines = line('$', s:viewmap_winid)
+        let thumb_lines = line('$', g:viewmap_winid)
 
         if thumb_lines > 0
             let thumb_hitop = max([1, float2nr(floor(win_topline * 1.0 / thumb_scale))])
@@ -263,24 +263,24 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                 let [thumb_hitop, thumb_hibot] = [thumb_hibot, thumb_hitop]
             endif
 
-            call win_execute(s:viewmap_winid, 'if exists("w:viewmap_hlmatch") | call matchdelete(w:viewmap_hlmatch) | endif')
-            call win_execute(s:viewmap_winid, 'unlet! w:viewmap_hlmatch')
+            call win_execute(g:viewmap_winid, 'if exists("w:viewmap_hlmatch") | call matchdelete(w:viewmap_hlmatch) | endif')
+            call win_execute(g:viewmap_winid, 'unlet! w:viewmap_hlmatch')
 
             if thumb_hitop <= thumb_hibot && thumb_hitop > 0 && thumb_hibot <= thumb_lines
                 let highlight_range = range(thumb_hitop, thumb_hibot)
                 if !empty(highlight_range)
-                    call win_execute(s:viewmap_winid, 'let w:viewmap_hlmatch = matchaddpos("'.g:viewmap_hlname.'", '.string(highlight_range).', 10)')
+                    call win_execute(g:viewmap_winid, 'let w:viewmap_hlmatch = matchaddpos("'.g:viewmap_hlname.'", '.string(highlight_range).', 10)')
                 endif
             endif
 
-            let thumb_winhgt = winheight(s:viewmap_winid)
+            let thumb_winhgt = winheight(g:viewmap_winid)
             if thumb_winhgt > 0 && thumb_hitop > 0 && thumb_hibot > 0
                 let thumb_hicent = (thumb_hitop + thumb_hibot) / 2
                 let thumb_toppos = max([1, thumb_hicent - (thumb_winhgt / 2) + &scrolloff])
                 let thumb_toppos = min([thumb_lines - thumb_winhgt + 1 + &scrolloff, thumb_toppos])
                 if thumb_toppos > 0
-                    call win_execute(s:viewmap_winid, 'call cursor('.thumb_toppos.', 1)')
-                    call win_execute(s:viewmap_winid, 'normal! zt')
+                    call win_execute(g:viewmap_winid, 'call cursor('.thumb_toppos.', 1)')
+                    call win_execute(g:viewmap_winid, 'normal! zt')
                 endif
             endif
         endif
@@ -291,13 +291,16 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     " --------------------------------------------------
     function! viewmap#SafeUpdateCon(type = 0) abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
-        if s:viewmap_timer != -1
-            call timer_stop(s:viewmap_timer)
-            let s:viewmap_timer = -1
+        if g:viewmap_timer != -1
+            call timer_stop(g:viewmap_timer)
+            let g:viewmap_timer = -1
         endif
-        let s:viewmap_timer = timer_start(g:viewmap_updelay, {-> execute('call viewmap#UpdateCon('.a:type.')', '')})
+        let g:viewmap_timer = timer_start(g:viewmap_updelay, {-> execute('call viewmap#UpdateCon('.a:type.')', '')})
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#SafeUpdatePos
+    " --------------------------------------------------
     function! viewmap#SafeUpdatePos() abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
         call timer_start(0, {-> execute('call viewmap#UpdatePos()', '')})
