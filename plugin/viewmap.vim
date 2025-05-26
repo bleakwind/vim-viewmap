@@ -19,43 +19,35 @@ let g:viewmap_plugin = 1
 
 scriptencoding utf-8
 
-" ============================================================================
-" setting list
-" ============================================================================
-if !exists('g:viewmap_enabled')
-    let g:viewmap_enabled = 1
-endif
-if !exists('g:viewmap_width')
-    let g:viewmap_width = 20
-endif
-if !exists('g:viewmap_updelay')
-    let g:viewmap_updelay = 200
-endif
-if !exists('g:viewmap_hlalpha')
-    let g:viewmap_hlalpha = 0.3
-endif
-
-if !exists('g:viewmap_state')
-    let g:viewmap_state = 0
-endif
-if !exists('g:viewmap_data')
-    let g:viewmap_data = {}
-endif
-if !exists('g:viewmap_highlight')
-    let g:viewmap_highlight = 'ViewmapHighlight'
-endif
-
-let s:viewmap_bufnr = -1
-let s:viewmap_winid = -1
-let s:viewmap_timer = -1
-let s:viewmap_chars = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '0001':'⡀', '1100':'⠃', '0110':'⠆', '0011':'⡄',
-                     \ '1010':'⠅', '1001':'⡁', '0101':'⡂', '1110':'⠇', '1101':'⡃', '1011':'⡅', '0111':'⡆', '1111':'⡇'}
+let s:save_cpo = &cpoptions
+set cpoptions&vim
 
 " ============================================================================
-" function detail
+" viewmap setting
+" ============================================================================
+let g:viewmap_enabled   = get(g:, 'viewmap_enabled',    0)
+let g:viewmap_width     = get(g:, 'viewmap_width',      20)
+let g:viewmap_updelay   = get(g:, 'viewmap_updelay',    200)
+let g:viewmap_hlalpha   = get(g:, 'viewmap_hlalpha',    0.3)
+
+let g:viewmap_state     = 0
+let g:viewmap_data      = {}
+let s:viewmap_bufnr     = -1
+let s:viewmap_winid     = -1
+let s:viewmap_timer     = -1
+let g:viewmap_hlname    = 'ViewmapHighlight'
+let s:viewmap_chars     = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'⠄', '0001':'⡀', '1100':'⠃', '0110':'⠆', '0011':'⡄',
+                         \ '1010':'⠅', '1001':'⡁', '0101':'⡂', '1110':'⠇', '1101':'⡃', '1011':'⡅', '0111':'⡆', '1111':'⡇'}
+
+" ============================================================================
+" viewmap detail
+" g:viewmap_enabled = 1
 " ============================================================================
 if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
 
+    " --------------------------------------------------
+    " viewmap#Open
+    " --------------------------------------------------
     function! viewmap#Open() abort
         if viewmap#IsVisible() || &diff | return | endif
 
@@ -71,7 +63,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
 
         wincmd p
 
-        augroup ViewmapAutocmd
+        augroup ViewmapCmdOpen
             autocmd!
             autocmd BufReadPost,BufWritePost,FileChangedShellPost * call viewmap#SafeUpdateCon(1)
             autocmd BufEnter * call viewmap#SafeUpdateCon(0)
@@ -83,6 +75,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         call viewmap#SafeUpdateCon(0)
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#Close
+    " --------------------------------------------------
     function! viewmap#Close() abort
         if !viewmap#IsVisible() | return | endif
 
@@ -91,10 +86,10 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             let s:viewmap_timer = -1
         endif
 
-        augroup ViewmapAutocmd
+        augroup ViewmapCmdClose
             autocmd!
         augroup END
-        augroup! ViewmapAutocmd
+        augroup! ViewmapCmdClose
 
         if win_id2win(s:viewmap_winid) > 0
             call win_execute(s:viewmap_winid, 'quit')
@@ -104,7 +99,10 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         let s:viewmap_winid = -1
     endfunction
 
-    function! viewmap#ColorMixWhite(color, alpha) abort
+    " --------------------------------------------------
+    " viewmap#ColorMixwhite
+    " --------------------------------------------------
+    function! viewmap#ColorMixwhite(color, alpha) abort
         let res_color = a:color
         if a:color =~? '^#[0-9a-fA-F]\{6}$' && a:alpha >= 0.0 && a:alpha <= 1.0
             let r = str2nr(a:color[1:2], 16)
@@ -124,7 +122,10 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         return res_color
     endfunction
 
-    function! viewmap#GetHiColor(sort, type) abort
+    " --------------------------------------------------
+    " viewmap#GetHlcolor
+    " --------------------------------------------------
+    function! viewmap#GetHlcolor(sort, type) abort
         let ret_color = ''
         let gui_color = synIDattr(synIDtrans(hlID('Normal')), a:sort, a:type)
         if !empty(gui_color) && gui_color != -1
@@ -133,32 +134,44 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         return ret_color
     endfunction
 
-    function! viewmap#SetHlColor() abort
+    " --------------------------------------------------
+    " viewmap#SetHlcolor
+    " --------------------------------------------------
+    function! viewmap#SetHlcolor() abort
         let hl_vmfg = ''
         let hl_vmbg = ''
-        let hl_guifg = viewmap#GetHiColor('fg', 'gui')
-        let hl_guibg = viewmap#GetHiColor('bg', 'gui')
+        let hl_guifg = viewmap#GetHlcolor('fg', 'gui')
+        let hl_guibg = viewmap#GetHlcolor('bg', 'gui')
         if !empty(hl_guifg)
             let hl_vmfg = hl_guifg
         endif
         if !empty(hl_guibg)
-            let hl_vmbg = viewmap#ColorMixWhite(hl_guibg, g:viewmap_hlalpha)
+            let hl_vmbg = viewmap#ColorMixwhite(hl_guibg, g:viewmap_hlalpha)
         endif
         if hl_vmfg =~? '^#[0-9a-fA-F]\{6}$' && hl_vmbg =~? '^#[0-9a-fA-F]\{6}$'
-            execute 'highlight default '.g:viewmap_highlight.' guifg='.hl_vmfg.' guibg='.hl_vmbg
+            execute 'highlight default '.g:viewmap_hlname.' guifg='.hl_vmfg.' guibg='.hl_vmbg
         else
-            execute 'highlight default link ViewmapHighlight Visual'
+            execute 'highlight default link '.g:viewmap_hlname.' Visual'
         endif
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#IsVisible
+    " --------------------------------------------------
     function! viewmap#IsVisible() abort
         return s:viewmap_winid != -1 && win_id2win(s:viewmap_winid) > 0
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#IsInwindow
+    " --------------------------------------------------
     function! viewmap#IsInwindow() abort
         return win_getid() == s:viewmap_winid
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#UpdateCon
+    " --------------------------------------------------
     function! viewmap#UpdateCon(type = 0) abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
 
@@ -217,6 +230,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         call viewmap#SafeUpdatePos()
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#DeleteCon
+    " --------------------------------------------------
     function! viewmap#DeleteCon(bufnr) abort
         let bufnr = str2nr(a:bufnr)
         if has_key(g:viewmap_data, bufnr)
@@ -224,6 +240,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         endif
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#UpdatePos
+    " --------------------------------------------------
     function! viewmap#UpdatePos() abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
 
@@ -244,13 +263,13 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                 let [thumb_hitop, thumb_hibot] = [thumb_hibot, thumb_hitop]
             endif
 
-            call win_execute(s:viewmap_winid, 'if exists("w:viewmap_highlight") | call matchdelete(w:viewmap_highlight) | endif')
-            call win_execute(s:viewmap_winid, 'unlet! w:viewmap_highlight')
+            call win_execute(s:viewmap_winid, 'if exists("w:viewmap_hlmatch") | call matchdelete(w:viewmap_hlmatch) | endif')
+            call win_execute(s:viewmap_winid, 'unlet! w:viewmap_hlmatch')
 
             if thumb_hitop <= thumb_hibot && thumb_hitop > 0 && thumb_hibot <= thumb_lines
                 let highlight_range = range(thumb_hitop, thumb_hibot)
                 if !empty(highlight_range)
-                    call win_execute(s:viewmap_winid, 'let w:viewmap_highlight = matchaddpos("'.g:viewmap_highlight.'", '.string(highlight_range).', 10)')
+                    call win_execute(s:viewmap_winid, 'let w:viewmap_hlmatch = matchaddpos("'.g:viewmap_hlname.'", '.string(highlight_range).', 10)')
                 endif
             endif
 
@@ -267,6 +286,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         endif
     endfunction
 
+    " --------------------------------------------------
+    " viewmap#SafeUpdateCon
+    " --------------------------------------------------
     function! viewmap#SafeUpdateCon(type = 0) abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
         if s:viewmap_timer != -1
@@ -281,10 +303,39 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
         call timer_start(0, {-> execute('call viewmap#UpdatePos()', '')})
     endfunction
 
-    " ============================================================================
-    " diff mode
-    " ============================================================================
-    augroup ViewmapDiffmode
+    " --------------------------------------------------
+    " viewmap#OpenState
+    " --------------------------------------------------
+    function! viewmap#OpenState() abort
+        call viewmap#SetHlcolor()
+        call viewmap#Open()
+        let g:viewmap_state = 1
+    endfunction
+
+    " --------------------------------------------------
+    " viewmap#CloseState
+    " --------------------------------------------------
+    function! viewmap#CloseState() abort
+        call viewmap#Close()
+        let g:viewmap_state = 0
+    endfunction
+
+    " --------------------------------------------------
+    " viewmap#ToggleState
+    " --------------------------------------------------
+    function! viewmap#ToggleState() abort
+        if viewmap#IsVisible()
+            call viewmap#CloseState()
+        else
+            call viewmap#SetHlcolor()
+            call viewmap#OpenState()
+        endif
+    endfunction
+
+    " --------------------------------------------------
+    " ViewmapCmdDiffmode
+    " --------------------------------------------------
+    augroup ViewmapCmdDiffmode
         autocmd!
         autocmd OptionSet diff
                     \ if v:option_new && viewmap#IsVisible() |
@@ -294,31 +345,18 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                     \ endif
     augroup END
 
-    " ============================================================================
-    " interface list
-    " ============================================================================
-    function! viewmap#OpenState() abort
-        call viewmap#SetHlColor()
-        call viewmap#Open()
-        let g:viewmap_state = 1
-    endfunction
-
-    function! viewmap#CloseState() abort
-        call viewmap#Close()
-        let g:viewmap_state = 0
-    endfunction
-
-    function! viewmap#ToggleState() abort
-        if viewmap#IsVisible()
-            call viewmap#CloseState()
-        else
-            call viewmap#SetHlColor()
-            call viewmap#OpenState()
-        endif
-    endfunction
-
+    " --------------------------------------------------
+    " command
+    " --------------------------------------------------
     command! -bar ViewmapOpen call viewmap#OpenState()
     command! -bar ViewmapClose call viewmap#CloseState()
     command! -bar ViewmapToggle call viewmap#ToggleState()
 
 endif
+
+" ============================================================================
+" Other
+" ============================================================================
+let &cpoptions = s:save_cpo
+unlet s:save_cpo
+
