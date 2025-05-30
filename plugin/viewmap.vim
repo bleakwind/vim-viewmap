@@ -103,53 +103,53 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     " viewmap#ColorMixwhite
     " --------------------------------------------------
     function! viewmap#ColorMixwhite(color, alpha) abort
-        let res_color = a:color
+        let l:res_color = a:color
         if a:color =~? '^#[0-9a-fA-F]\{6}$' && a:alpha >= 0.0 && a:alpha <= 1.0
-            let r = str2nr(a:color[1:2], 16)
-            let g = str2nr(a:color[3:4], 16)
-            let b = str2nr(a:color[5:6], 16)
+            let l:r = str2nr(a:color[1:2], 16)
+            let l:g = str2nr(a:color[3:4], 16)
+            let l:b = str2nr(a:color[5:6], 16)
 
-            let mixed_r = float2nr(r * (1.0 - a:alpha) + 255 * a:alpha)
-            let mixed_g = float2nr(g * (1.0 - a:alpha) + 255 * a:alpha)
-            let mixed_b = float2nr(b * (1.0 - a:alpha) + 255 * a:alpha)
+            let l:mixed_r = float2nr(l:r * (1.0 - a:alpha) + 255 * a:alpha)
+            let l:mixed_g = float2nr(l:g * (1.0 - a:alpha) + 255 * a:alpha)
+            let l:mixed_b = float2nr(l:b * (1.0 - a:alpha) + 255 * a:alpha)
 
-            let mixed_r = max([0, min([255, mixed_r])])
-            let mixed_g = max([0, min([255, mixed_g])])
-            let mixed_b = max([0, min([255, mixed_b])])
+            let l:mixed_r = max([0, min([255, l:mixed_r])])
+            let l:mixed_g = max([0, min([255, l:mixed_g])])
+            let l:mixed_b = max([0, min([255, l:mixed_b])])
 
-            let res_color = printf('#%02X%02X%02X', mixed_r, mixed_g, mixed_b)
+            let l:res_color = printf('#%02X%02X%02X', l:mixed_r, l:mixed_g, l:mixed_b)
         endif
-        return res_color
+        return l:res_color
     endfunction
 
     " --------------------------------------------------
     " viewmap#GetHlcolor
     " --------------------------------------------------
     function! viewmap#GetHlcolor(sort, type) abort
-        let ret_color = ''
-        let gui_color = synIDattr(synIDtrans(hlID('Normal')), a:sort, a:type)
-        if !empty(gui_color) && gui_color != -1
-            let ret_color = gui_color
+        let l:ret_color = ''
+        let l:gui_color = synIDattr(synIDtrans(hlID('Normal')), a:sort, a:type)
+        if !empty(l:gui_color) && l:gui_color != -1
+            let l:ret_color = l:gui_color
         endif
-        return ret_color
+        return l:ret_color
     endfunction
 
     " --------------------------------------------------
     " viewmap#SetHlcolor
     " --------------------------------------------------
     function! viewmap#SetHlcolor() abort
-        let hl_vmfg = ''
-        let hl_vmbg = ''
-        let hl_guifg = viewmap#GetHlcolor('fg', 'gui')
-        let hl_guibg = viewmap#GetHlcolor('bg', 'gui')
-        if !empty(hl_guifg)
-            let hl_vmfg = hl_guifg
+        let l:hl_vmfg = ''
+        let l:hl_vmbg = ''
+        let l:hl_guifg = viewmap#GetHlcolor('fg', 'gui')
+        let l:hl_guibg = viewmap#GetHlcolor('bg', 'gui')
+        if !empty(l:hl_guifg)
+            let l:hl_vmfg = l:hl_guifg
         endif
-        if !empty(hl_guibg)
-            let hl_vmbg = viewmap#ColorMixwhite(hl_guibg, g:viewmap_hlalpha)
+        if !empty(l:hl_guibg)
+            let l:hl_vmbg = viewmap#ColorMixwhite(l:hl_guibg, g:viewmap_hlalpha)
         endif
-        if hl_vmfg =~? '^#[0-9a-fA-F]\{6}$' && hl_vmbg =~? '^#[0-9a-fA-F]\{6}$'
-            execute 'highlight default '.g:viewmap_hlname.' guifg='.hl_vmfg.' guibg='.hl_vmbg
+        if l:hl_vmfg =~? '^#[0-9a-fA-F]\{6}$' && l:hl_vmbg =~? '^#[0-9a-fA-F]\{6}$'
+            execute 'highlight default '.g:viewmap_hlname.' guifg='.l:hl_vmfg.' guibg='.l:hl_vmbg
         else
             execute 'highlight default link '.g:viewmap_hlname.' Visual'
         endif
@@ -175,68 +175,68 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     function! viewmap#UpdateCon(type = 0) abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
 
-        let save_lazyredraw = &lazyredraw
+        let l:save_lazyredraw = &lazyredraw
         set lazyredraw
 
-        let win_bufnr = winbufnr(win_getid())
-        let win_width = winwidth(win_getid())
+        let l:win_bufnr = winbufnr(win_getid())
+        let l:win_width = winwidth(win_getid())
 
-        let win_topline = line('w0')
-        let win_botline = line('w$')
-        let win_allline = line('$')
+        let l:win_topline = line('w0')
+        let l:win_botline = line('w$')
+        let l:win_allline = line('$')
 
-        let thumb_scale = 4
-        let thumb_width = max([1, g:viewmap_width - 0])
-        let thumb_lines = (win_allline + 3) / 4
+        let l:thumb_scale = 4
+        let l:thumb_width = max([1, g:viewmap_width - 0])
+        let l:thumb_lines = (l:win_allline + 3) / 4
 
-        if !has_key(g:viewmap_data, win_bufnr) || a:type == 1
-            let g:viewmap_data[win_bufnr] = []
-            for record in range(0, thumb_lines - 1)
-                let tlist = []
-                for offset in range(0, 3)
-                    let lnum = record * 4 + offset + 1
-                    call add(tlist, lnum <= win_allline ? getbufline(win_bufnr, lnum)[0] : '')
+        if !has_key(g:viewmap_data, l:win_bufnr) || a:type == 1
+            let g:viewmap_data[l:win_bufnr] = []
+            for il in range(0, l:thumb_lines - 1)
+                let l:tlist = []
+                for ic in range(0, 3)
+                    let l:lnum = il * 4 + ic + 1
+                    call add(l:tlist, l:lnum <= l:win_allline ? getbufline(l:win_bufnr, l:lnum)[0] : '')
                 endfor
-                let tdata = ''
-                for col in range(0, thumb_width - 1)
-                    let char_list = [0, 0, 0, 0]
-                    for i in range(0, 3)
-                        let search_beg = match(tlist[i], '[^ \t]')
-                        let search_end = strdisplaywidth(tlist[i])
-                        let buffer_beg = search_beg == -1 ? len(tlist[i]) : search_beg
-                        let buffer_end = search_end > 0 ? search_end - 1 : 0
-                        let thumb_beg = buffer_beg/thumb_scale
-                        let thumb_end = buffer_end/thumb_scale
-                        if tlist[i] == ''
-                            let char_list[i] = 0
-                        elseif col >= thumb_beg && col <= thumb_end
-                            let char_list[i] = 1
+                let l:tdata = ''
+                for iw in range(0, l:thumb_width - 1)
+                    let l:clist = [0, 0, 0, 0]
+                    for ic in range(0, 3)
+                        let l:search_beg = match(l:tlist[ic], '[^ \t]')
+                        let l:search_end = strdisplaywidth(l:tlist[ic])
+                        let l:buffer_beg = l:search_beg == -1 ? len(l:tlist[ic]) : l:search_beg
+                        let l:buffer_end = l:search_end > 0 ? l:search_end - 1 : 0
+                        let l:thumb_beg = l:buffer_beg / l:thumb_scale
+                        let l:thumb_end = l:buffer_end / l:thumb_scale
+                        if l:tlist[ic] == ''
+                            let l:clist[ic] = 0
+                        elseif iw >= l:thumb_beg && iw <= l:thumb_end
+                            let l:clist[ic] = 1
                         else
-                            let char_list[i] = 0
+                            let l:clist[ic] = 0
                         endif
                     endfor
-                    let tdata .= get(g:viewmap_chars, join(char_list, ''), ' ')
+                    let l:tdata .= get(g:viewmap_chars, join(l:clist, ''), ' ')
                 endfor
-                call add(g:viewmap_data[win_bufnr], tdata)
+                call add(g:viewmap_data[l:win_bufnr], l:tdata)
             endfor
         endif
 
         call win_execute(g:viewmap_winid, 'setlocal modifiable')
         call win_execute(g:viewmap_winid, 'silent %delete _')
-        call win_execute(g:viewmap_winid, 'call setline(1, '.string(g:viewmap_data[win_bufnr]).')')
+        call win_execute(g:viewmap_winid, 'call setline(1, '.string(g:viewmap_data[l:win_bufnr]).')')
         call win_execute(g:viewmap_winid, 'setlocal nomodifiable')
 
-        let &lazyredraw = save_lazyredraw
+        let &lazyredraw = l:save_lazyredraw
         call viewmap#SafeUpdatePos()
     endfunction
 
     " --------------------------------------------------
     " viewmap#DeleteCon
     " --------------------------------------------------
-    function! viewmap#DeleteCon(bufnr) abort
-        let bufnr = str2nr(a:bufnr)
-        if has_key(g:viewmap_data, bufnr)
-            unlet g:viewmap_data[bufnr]
+    function! viewmap#DeleteCon(buf) abort
+        let l:bufnr = str2nr(a:buf)
+        if has_key(g:viewmap_data, l:bufnr)
+            unlet g:viewmap_data[l:bufnr]
         endif
     endfunction
 
@@ -246,40 +246,40 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     function! viewmap#UpdatePos() abort
         if !viewmap#IsVisible() || &diff || viewmap#IsInwindow() | return | endif
 
-        let win_topline = line('w0')
-        let win_botline = line('w$')
-        let win_allline = line('$')
+        let l:win_topline = line('w0')
+        let l:win_botline = line('w$')
+        let l:win_allline = line('$')
 
-        let thumb_scale = 4
-        let thumb_lines = line('$', g:viewmap_winid)
+        let l:thumb_scale = 4
+        let l:thumb_lines = line('$', g:viewmap_winid)
 
-        if thumb_lines > 0
-            let thumb_hitop = max([1, float2nr(floor(win_topline * 1.0 / thumb_scale))])
-            let thumb_hibot = max([1, float2nr(ceil(win_botline * 1.0 / thumb_scale))])
-            let thumb_hitop = min([thumb_lines, thumb_hitop])
-            let thumb_hibot = min([thumb_lines, thumb_hibot])
+        if l:thumb_lines > 0
+            let l:thumb_hitop = max([1, float2nr(floor(l:win_topline * 1.0 / l:thumb_scale))])
+            let l:thumb_hibot = max([1, float2nr(ceil(l:win_botline * 1.0 / l:thumb_scale))])
+            let l:thumb_hitop = min([l:thumb_lines, l:thumb_hitop])
+            let l:thumb_hibot = min([l:thumb_lines, l:thumb_hibot])
 
-            if thumb_hitop > thumb_hibot
-                let [thumb_hitop, thumb_hibot] = [thumb_hibot, thumb_hitop]
+            if l:thumb_hitop > l:thumb_hibot
+                let [l:thumb_hitop, l:thumb_hibot] = [l:thumb_hibot, l:thumb_hitop]
             endif
 
             call win_execute(g:viewmap_winid, 'if exists("w:viewmap_hlmatch") | call matchdelete(w:viewmap_hlmatch) | endif')
             call win_execute(g:viewmap_winid, 'unlet! w:viewmap_hlmatch')
 
-            if thumb_hitop <= thumb_hibot && thumb_hitop > 0 && thumb_hibot <= thumb_lines
-                let highlight_range = range(thumb_hitop, thumb_hibot)
-                if !empty(highlight_range)
-                    call win_execute(g:viewmap_winid, 'let w:viewmap_hlmatch = matchaddpos("'.g:viewmap_hlname.'", '.string(highlight_range).', 10)')
+            if l:thumb_hitop <= l:thumb_hibot && l:thumb_hitop > 0 && l:thumb_hibot <= l:thumb_lines
+                let l:hl_range = range(l:thumb_hitop, l:thumb_hibot)
+                if !empty(l:hl_range)
+                    call win_execute(g:viewmap_winid, 'let w:viewmap_hlmatch = matchaddpos("'.g:viewmap_hlname.'", '.string(l:hl_range).', 10)')
                 endif
             endif
 
-            let thumb_winhgt = winheight(g:viewmap_winid)
-            if thumb_winhgt > 0 && thumb_hitop > 0 && thumb_hibot > 0
-                let thumb_hicent = (thumb_hitop + thumb_hibot) / 2
-                let thumb_toppos = max([1, thumb_hicent - (thumb_winhgt / 2) + &scrolloff])
-                let thumb_toppos = min([thumb_lines - thumb_winhgt + 1 + &scrolloff, thumb_toppos])
-                if thumb_toppos > 0
-                    call win_execute(g:viewmap_winid, 'call cursor('.thumb_toppos.', 1)')
+            let l:thumb_winhgt = winheight(g:viewmap_winid)
+            if l:thumb_winhgt > 0 && l:thumb_hitop > 0 && l:thumb_hibot > 0
+                let l:thumb_hicent = (l:thumb_hitop + l:thumb_hibot) / 2
+                let l:thumb_toppos = max([1, l:thumb_hicent - (l:thumb_winhgt / 2) + &scrolloff])
+                let l:thumb_toppos = min([l:thumb_lines - l:thumb_winhgt + 1 + &scrolloff, l:thumb_toppos])
+                if l:thumb_toppos > 0
+                    call win_execute(g:viewmap_winid, 'call cursor('.l:thumb_toppos.', 1)')
                     call win_execute(g:viewmap_winid, 'normal! zt')
                 endif
             endif
