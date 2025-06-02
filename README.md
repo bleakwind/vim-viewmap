@@ -1,6 +1,6 @@
 # vim-viewmap
 
-## Sidebar thumbnail navigation for Vim
+## Sidebar thumbnail navigation for vim...
 vim-viewmap is a lightweight Vim plugin that displays a real-time code thumbnail in a sidebar, providing a bird's-eye view of your document structure. It renders compressed text representations using Unicode Braille patterns, allowing you to quickly navigate large files while preserving spatial awareness.
 
 ## Features
