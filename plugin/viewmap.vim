@@ -234,9 +234,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     " viewmap#DeleteCon
     " --------------------------------------------------
     function! viewmap#DeleteCon(buf) abort
-        let l:bufnr = str2nr(a:buf)
-        if has_key(g:viewmap_data, l:bufnr)
-            unlet g:viewmap_data[l:bufnr]
+        let l:bufnbr = str2nr(a:buf)
+        if has_key(g:viewmap_data, l:bufnbr)
+            unlet g:viewmap_data[l:bufnbr]
         endif
     endfunction
 
