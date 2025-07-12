@@ -149,9 +149,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             let l:hl_vmbg = viewmap#ColorMixwhite(l:hl_guibg, g:viewmap_hlalpha)
         endif
         if l:hl_vmfg =~? '^#[0-9a-fA-F]\{6}$' && l:hl_vmbg =~? '^#[0-9a-fA-F]\{6}$'
-            execute 'highlight default '.g:viewmap_hlname.' guifg='.l:hl_vmfg.' guibg='.l:hl_vmbg
+            execute 'hi default '.g:viewmap_hlname.' guifg='.l:hl_vmfg.' guibg='.l:hl_vmbg
         else
-            execute 'highlight default link '.g:viewmap_hlname.' Visual'
+            execute 'hi default link '.g:viewmap_hlname.' Visual'
         endif
     endfunction
 
