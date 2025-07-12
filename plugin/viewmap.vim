@@ -63,7 +63,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
 
         wincmd p
 
-        augroup ViewmapCmdOpen
+        augroup viewmap_cmd_bas
             autocmd!
             autocmd BufReadPost,BufWritePost,FileChangedShellPost * call viewmap#SafeUpdateCon(1)
             autocmd BufEnter * call viewmap#SafeUpdateCon(0)
@@ -86,10 +86,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             let g:viewmap_timer = -1
         endif
 
-        augroup ViewmapCmdClose
+        augroup viewmap_cmd_bas
             autocmd!
         augroup END
-        augroup! ViewmapCmdClose
 
         if win_id2win(g:viewmap_winid) > 0
             call win_execute(g:viewmap_winid, 'quit')
@@ -336,9 +335,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     endfunction
 
     " --------------------------------------------------
-    " ViewmapCmdDiffmode
+    " viewmap_cmd_diff
     " --------------------------------------------------
-    augroup ViewmapCmdDiffmode
+    augroup viewmap_cmd_diff
         autocmd!
         autocmd OptionSet diff
                     \ if v:option_new && viewmap#IsVisible() |
