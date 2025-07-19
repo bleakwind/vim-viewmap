@@ -99,9 +99,9 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     endfunction
 
     " --------------------------------------------------
-    " viewmap#ColorMixwhite
+    " viewmap#MixWhite
     " --------------------------------------------------
-    function! viewmap#ColorMixwhite(color, alpha) abort
+    function! viewmap#MixWhite(color, alpha) abort
         let l:res_color = a:color
         if a:color =~? '^#[0-9a-fA-F]\{6}$' && a:alpha >= 0.0 && a:alpha <= 1.0
             let l:r = str2nr(a:color[1:2], 16)
@@ -145,7 +145,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             let l:hl_vmfg = l:hl_guifg
         endif
         if !empty(l:hl_guibg)
-            let l:hl_vmbg = viewmap#ColorMixwhite(l:hl_guibg, g:viewmap_hlalpha)
+            let l:hl_vmbg = viewmap#MixWhite(l:hl_guibg, g:viewmap_hlalpha)
         endif
         if l:hl_vmfg =~? '^#[0-9a-fA-F]\{6}$' && l:hl_vmbg =~? '^#[0-9a-fA-F]\{6}$'
             execute 'hi default '.g:viewmap_hlname.' guifg='.l:hl_vmfg.' guibg='.l:hl_vmbg
