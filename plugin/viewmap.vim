@@ -262,7 +262,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                 let [l:thumb_hitop, l:thumb_hibot] = [l:thumb_hibot, l:thumb_hitop]
             endif
 
-            call win_execute(g:viewmap_winid, 'if exists("w:viewmap_hlmatch") | call matchdelete(w:viewmap_hlmatch) | endif')
+            call win_execute(g:viewmap_winid, "if exists('w:viewmap_hlmatch') | call matchdelete(w:viewmap_hlmatch) | endif")
             call win_execute(g:viewmap_winid, 'unlet! w:viewmap_hlmatch')
 
             if l:thumb_hitop <= l:thumb_hibot && l:thumb_hitop > 0 && l:thumb_hibot <= l:thumb_lines
