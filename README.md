@@ -47,12 +47,11 @@ hi ViewmapHighlight ctermfg=White ctermbg=Blue cterm=NONE guifg=#FFFFFF guibg=#6
 ```
 
 ## Usage
-| Command | Description |
-| ---- | ---- |
-| `:ViewmapOpen` | Open the thumbnail sidebar |
-| `:ViewmapClose` | Close the thumbnail sidebar |
+| Command          | Description                  |
+| ---------------- | ---------------------------- |
+| `:ViewmapOpen`   | Open the thumbnail sidebar   |
+| `:ViewmapClose`  | Close the thumbnail sidebar  |
 | `:ViewmapToggle` | Toggle the thumbnail sidebar |
 
 ## License
 BSD 2-Clause - See LICENSE file
-
