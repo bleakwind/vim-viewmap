@@ -57,7 +57,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
 
         call win_execute(g:viewmap_winid, 'setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile')
         call win_execute(g:viewmap_winid, 'setlocal nowrap nonumber norelativenumber winfixwidth')
-        call win_execute(g:viewmap_winid, 'setlocal nocursorline nocursorcolumn nolist nofoldenable')
+        call win_execute(g:viewmap_winid, 'setlocal nocursorline nocursorline nocursorcolumn nolist nofoldenable')
         call win_execute(g:viewmap_winid, 'setlocal foldcolumn=0 colorcolumn=')
         call win_execute(g:viewmap_winid, 'file vim-viewmap')
 
@@ -361,4 +361,3 @@ endif
 " ============================================================================
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
-
