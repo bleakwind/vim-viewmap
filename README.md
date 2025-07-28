@@ -32,8 +32,12 @@ Add these to your `.vimrc`:
 ```vim
 " Set 1 enable viewmap (default: 0)
 let g:viewmap_enabled = 1
+" Set 1 autostart viewmap (default: 0)
+let g:viewmap_autostart = 1
+" Position of the viewmap window: 'left' or 'right' (default: right)
+let g:viewmap_position = 'right'
 " Set sidebar width (default: 20)
-let g:viewmap_width = 20
+let g:viewmap_winwidth = 20
 " Set update delay in milliseconds (default: 200)
 let g:viewmap_updelay = 200
 " Set highlight alpha (default: group is Normal, bg alpha is 0.3)
