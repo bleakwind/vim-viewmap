@@ -47,7 +47,7 @@ let s:viewmap_chars         = {'0000':' ', '1000':'⠁', '0100':'⠂', '0010':'�
 " viewmap detail
 " g:viewmap_enabled = 1
 " ============================================================================
-if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
+if exists('g:viewmap_enabled') && g:viewmap_enabled ==# 1
 
     " --------------------------------------------------
     " viewmap#IsVisible
@@ -60,7 +60,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     " viewmap#IsInwindow
     " --------------------------------------------------
     function! viewmap#IsInwindow() abort
-        return win_getid() == s:viewmap_winidn
+        return win_getid() ==# s:viewmap_winidn
     endfunction
 
     " --------------------------------------------------
@@ -72,7 +72,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             let l:orig_winidn = win_getid()
 
             " open win
-            if g:viewmap_position == 'left'
+            if g:viewmap_position ==# 'left'
                 execute 'silent! topleft vnew vim-viewmap | vertical resize '.g:viewmap_winwidth
             else
                 execute 'silent! botright vnew vim-viewmap | vertical resize '.g:viewmap_winwidth
@@ -89,7 +89,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             call win_execute(s:viewmap_winidn, 'file vim-viewmap')
 
             " set win
-            if g:viewmap_position == 'left'
+            if g:viewmap_position ==# 'left'
                 call win_execute(s:viewmap_winidn, 'setlocal winfixwidth')
             else
                 call win_execute(s:viewmap_winidn, 'setlocal winfixwidth')
@@ -107,7 +107,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                 autocmd BufEnter * call viewmap#SafeUpdateCon(0)
                 autocmd BufDelete * call viewmap#DeleteCon(expand('<abuf>'))
                 autocmd WinScrolled * call viewmap#SafeUpdatePos()
-                autocmd WinClosed * if win_getid() == s:viewmap_winidn | let s:viewmap_winidn = -1 | endif
+                autocmd WinClosed * if win_getid() ==# s:viewmap_winidn | let s:viewmap_winidn = -1 | endif
             augroup END
         endif
         call viewmap#SafeUpdateCon(0)
@@ -174,7 +174,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
             let l:thumb_width = max([1, g:viewmap_winwidth - 0])
             let l:thumb_lines = (l:win_allline + 3) / 4
 
-            if !has_key(s:viewmap_data, l:win_bufnr) || a:type == 1
+            if !has_key(s:viewmap_data, l:win_bufnr) || a:type ==# 1
                 let s:viewmap_data[l:win_bufnr] = []
                 for il in range(0, l:thumb_lines - 1)
                     let l:tlist = []
@@ -188,11 +188,11 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                         for ic in range(0, 3)
                             let l:search_beg = match(l:tlist[ic], '[^ \t]')
                             let l:search_end = strdisplaywidth(l:tlist[ic])
-                            let l:buffer_beg = l:search_beg == -1 ? len(l:tlist[ic]) : l:search_beg
+                            let l:buffer_beg = l:search_beg ==# -1 ? len(l:tlist[ic]) : l:search_beg
                             let l:buffer_end = l:search_end > 0 ? l:search_end - 1 : 0
                             let l:thumb_beg = l:buffer_beg / l:thumb_scale
                             let l:thumb_end = l:buffer_end / l:thumb_scale
-                            if l:tlist[ic] == ''
+                            if l:tlist[ic] ==# ''
                                 let l:clist[ic] = 0
                             elseif iw >= l:thumb_beg && iw <= l:thumb_end
                                 let l:clist[ic] = 1
@@ -265,7 +265,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
                     let l:thumb_toppos = max([1, l:thumb_hicent - (l:thumb_winhgt / 2) + &scrolloff])
                     let l:thumb_toppos = min([l:thumb_lines - l:thumb_winhgt + 1 + &scrolloff, l:thumb_toppos])
                     if l:thumb_toppos > 0
-                        call win_execute(s:viewmap_winidn, 'call cursor('.l:thumb_toppos.', 1)')
+                        call win_execute(s:viewmap_winidn, 'keepjumps call setpos(".", [0, '.l:thumb_toppos.', 1, 0])')
                         call win_execute(s:viewmap_winidn, 'normal! zt')
                     endif
                 endif
@@ -386,13 +386,13 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled == 1
     augroup viewmap_cmd_diff
         autocmd!
         autocmd WinEnter * call viewmap#UpdateWidth()
-        if g:viewmap_autostart == 1
+        if g:viewmap_autostart ==# 1
             autocmd VimEnter * call timer_start(0, {-> execute('ViewmapOpen', '')})
         endif
         autocmd OptionSet diff
                     \ if v:option_new && viewmap#IsVisible() |
                     \     call timer_start(0, {-> execute('call viewmap#CloseWin()', '')}) |
-                    \ elseif !v:option_new && !viewmap#IsVisible() && s:viewmap_state == 1 |
+                    \ elseif !v:option_new && !viewmap#IsVisible() && s:viewmap_state ==# 1 |
                     \     call timer_start(0, {-> execute('call viewmap#OpenWin()', '')}) |
                     \ endif
     augroup END
