@@ -282,7 +282,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled ==# 1
                 call timer_stop(s:viewmap_timer)
                 let s:viewmap_timer = -1
             endif
-            let s:viewmap_timer = timer_start(g:viewmap_updelay, {-> execute('call viewmap#UpdateCon('.a:type.')', '')})
+            let s:viewmap_timer = timer_start(g:viewmap_updelay, {-> viewmap#UpdateCon(a:type)})
         endif
     endfunction
 
@@ -291,7 +291,7 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled ==# 1
     " --------------------------------------------------
     function! viewmap#SafeUpdatePos() abort
         if viewmap#IsVisible() && !&diff && !viewmap#IsInwindow()
-            call timer_start(0, {-> execute('call viewmap#UpdatePos()', '')})
+            call timer_start(0, {-> viewmap#UpdatePos()})
         endif
     endfunction
 
@@ -387,13 +387,13 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled ==# 1
         autocmd!
         autocmd WinEnter * call viewmap#UpdateWidth()
         if g:viewmap_autostart ==# 1
-            autocmd VimEnter * call timer_start(0, {-> execute('ViewmapOpen', '')})
+            autocmd VimEnter * call timer_start(0, {-> viewmap#Open()})
         endif
         autocmd OptionSet diff
                     \ if v:option_new && viewmap#IsVisible() |
-                    \     call timer_start(0, {-> execute('call viewmap#CloseWin()', '')}) |
+                    \     call timer_start(0, {-> viewmap#CloseWin()}) |
                     \ elseif !v:option_new && !viewmap#IsVisible() && s:viewmap_state ==# 1 |
-                    \     call timer_start(0, {-> execute('call viewmap#OpenWin()', '')}) |
+                    \     call timer_start(0, {-> viewmap#OpenWin()}) |
                     \ endif
     augroup END
 
