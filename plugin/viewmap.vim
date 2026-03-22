@@ -1,7 +1,7 @@
 "  vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4: */
 "
 "  +-------------------------------------------------------------------------+
-"  | $Id: viewmap.vim 2026-03-14 06:12:29 Bleakwind Exp $                    |
+"  | $Id: viewmap.vim 2026-03-22 13:39:40 Bleakwind Exp $                    |
 "  +-------------------------------------------------------------------------+
 "  | Copyright (c) 2008-2026 Bleakwind(Rick Wu).                             |
 "  +-------------------------------------------------------------------------+
@@ -186,12 +186,16 @@ if exists('g:viewmap_enabled') && g:viewmap_enabled ==# 1
                     for iw in range(0, l:thumb_width - 1)
                         let l:clist = [0, 0, 0, 0]
                         for ic in range(0, 3)
-                            let l:search_beg = match(l:tlist[ic], '[^ \t]')
+
+                            let l:search_beg = strdisplaywidth(matchstr(l:tlist[ic], '^[ \t]*'))
                             let l:search_end = strdisplaywidth(l:tlist[ic])
-                            let l:buffer_beg = l:search_beg ==# -1 ? len(l:tlist[ic]) : l:search_beg
-                            let l:buffer_end = l:search_end > 0 ? l:search_end - 1 : 0
+
+                            let l:buffer_beg = l:search_beg
+                            let l:buffer_end = l:search_beg == l:search_end ? 0 : l:search_end - 1
+
                             let l:thumb_beg = l:buffer_beg / l:thumb_scale
                             let l:thumb_end = l:buffer_end / l:thumb_scale
+
                             if l:tlist[ic] ==# ''
                                 let l:clist[ic] = 0
                             elseif iw >= l:thumb_beg && iw <= l:thumb_end
