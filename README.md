@@ -59,3 +59,4 @@ hi ViewmapHighlight ctermfg=White ctermbg=Blue cterm=NONE guifg=#FFFFFF guibg=#6
 
 ## License
 BSD 2-Clause - See LICENSE file
+
